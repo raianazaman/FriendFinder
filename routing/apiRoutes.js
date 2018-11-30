@@ -1,46 +1,61 @@
-// ===============================================================================
-// LOAD DATA
-// We are linking our routes to a series of "data" sources.
-// These data sources hold arrays of information on table-data, waitinglist, etc.
-// ===============================================================================
 
 var friendData = require("../data/friends");
 
 
-
-// ===============================================================================
-// ROUTING
-// ===============================================================================
-
 module.exports = function(app) {
-  // API GET Requests
-  // Below code handles when users "visit" a page.
-  // In each of the below cases when a user visits a link
-  // (ex: localhost:PORT/api/admin... they are shown a JSON of the data in the table)
-  // ---------------------------------------------------------------------------
-
   app.get("/api/friends", function(req, res) {
     res.json(friendData);
   });
 
   app.post("//api/friends", function(req, res) {
-    res.json(true);
-    console.log(req.body)
-  });
+    var newFriend = req.body;
+    for(var i = 0; i < newFriend.scores.length; i++) {
+      if(newFriend.scores[i] == "1 (Yes)") {
+
+        newFriend.scores[i] = 1;
+      } else if(newFriend.scores[i] == "3 (No)") {
+
+        newFriend.scores[i] = 3;
+      } else {
+
+        newFriend.scores[i] = parseInt(newFriend.scores[i]);
+      }
+  }
+//array for the comparison
+var comparisonArray = [];
+
+for(var i = 0; i < friendMatch.length; i++) {
+  //Determine the users most compatible friend
+  var comparedFriend = friendMatch[i];
+  //calculate the totaldifference between friends
+  var totalDifference = 0;
+  
+  for(var k = 0; k < comparedFriend.scores.length; k++) {
+    //return the absolute value of a number *use abs()method
+    var differenceOneScore = Math.abs(comparedFriend.scores[k] - newFriend.scores[k]);
+    totalDifference += differenceOneScore;
+  }
+
+  comparisonArray[i] = totalDifference;
+}
+
+var bestFriendNum = comparisonArray[0];
+var bestFriendI = 0;
+
+for(var i = 1; i < comparisonArray.length; i++) {
+  if(comparisonArray[i] < bestFriendNum) {
+    bestFriendNum = comparisonArray[i];
+    bestFriendI = i;
+  }
+}
+//push new friend
+friendMatch.push(newFriend);
+//json bf to the current friend match array
+res.json(friendMatch[bestFriendI]);
+});
+};
 
 
-  // API POST Requests
-  // Below code handles when a user submits a form and thus submits data to the server.
-  // In each of the below cases, when a user submits form data (a JSON object)
-  // ...the JSON is pushed to the appropriate JavaScript array
-  // (ex. User fills out a reservation request... this data is then sent to the server...
-  // Then the server saves the data to the tableData array)
-  // ---------------------------------------------------------------------------
-
-
-  // ---------------------------------------------------------------------------
-  // I added this below code so you could clear out the table while working with the functionality.
-  // Don"t worry about it!
 
   app.post("/api/clear", function(req, res) {
     // Empty out the arrays of data
@@ -48,4 +63,3 @@ module.exports = function(app) {
 
     res.json({ ok: true });
   });
-};
